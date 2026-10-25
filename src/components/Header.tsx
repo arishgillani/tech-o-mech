@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -140,6 +139,15 @@ export default function Header() {
                         {user.email}
                       </p>
                     </div>
+
+                    <Link
+                      href="/account"
+                      onClick={() => setShowAccountMenu(false)}
+                      className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100"
+                    >
+                      <UserRound size={18} />
+                      My Account
+                    </Link>
 
                     <button
                       type="button"
