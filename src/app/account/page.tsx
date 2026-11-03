@@ -3,7 +3,13 @@
 
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { UserRound, Heart, ShoppingBag, LogOut } from "lucide-react";
+import {
+  UserRound,
+  Heart,
+  ShoppingBag,
+  LogOut,
+  ChevronRight,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -13,7 +19,13 @@ export default function AccountPage() {
 
   async function handleSignOut() {
     const supabase = createClient();
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Sign out failed:", error);
+      return;
+    }
+
     router.replace("/");
     router.refresh();
   }
@@ -34,7 +46,8 @@ export default function AccountPage() {
           Sign in to your account
         </h1>
         <p className="mt-2 max-w-md text-gray-600">
-          Sign in to view your account information and manage your Tech O Mech activity.
+          Sign in to view your account information and manage your Tech O Mech
+          activity.
         </p>
         <Link
           href="/login?next=%2Faccount"
@@ -53,9 +66,7 @@ export default function AccountPage() {
     <main className="min-h-[65vh] bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <p className="text-sm font-medium text-blue-600">
-            TECH O MECH
-          </p>
+          <p className="text-sm font-medium text-blue-600">TECH O MECH</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-900">
             My Account
           </h1>
@@ -74,12 +85,8 @@ export default function AccountPage() {
               <h2 className="text-xl font-semibold text-gray-900">
                 {fullName}
               </h2>
-              <p className="mt-1 break-all text-gray-600">
-                {user.email}
-              </p>
-              <p className="mt-2 text-sm text-green-700">
-                Signed in
-              </p>
+              <p className="mt-1 break-all text-gray-600">{user.email}</p>
+              <p className="mt-2 text-sm text-green-700">Signed in</p>
             </div>
 
             <button
@@ -105,23 +112,26 @@ export default function AccountPage() {
             <p className="mt-2 text-sm leading-6 text-gray-600">
               View the products you have saved for later.
             </p>
-            <span className="mt-4 inline-block text-sm font-semibold text-blue-600 group-hover:text-blue-700">
-              View Wishlist →
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 group-hover:text-blue-700">
+              View Wishlist <ChevronRight className="h-4 w-4" />
             </span>
           </Link>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <Link
+            href="/account/orders"
+            className="group rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-blue-300 hover:shadow-md"
+          >
             <ShoppingBag className="h-7 w-7 text-blue-600" />
             <h3 className="mt-4 text-lg font-semibold text-gray-900">
               My Orders
             </h3>
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              Your order history will appear here once we build the demo checkout and order system.
+              Track your demo orders and view your previous purchases.
             </p>
-            <span className="mt-4 inline-block text-sm font-medium text-gray-400">
-              Coming soon
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 group-hover:text-blue-700">
+              View My Orders <ChevronRight className="h-4 w-4" />
             </span>
-          </div>
+          </Link>
         </div>
       </div>
     </main>

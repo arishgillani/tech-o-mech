@@ -28,7 +28,7 @@ const products = [
     },
     {
         id: 4,
-        name: "Wireless Gaming Mouse",
+        name: "Wired Gaming Mouse",
         category: "Gaming Mouse",
         price: 49.99,
         image: "/products/gaming-mouse.png",

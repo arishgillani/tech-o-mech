@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const {
@@ -12,6 +14,20 @@ export default function CartPage() {
     clearCart,
     subtotal,
   } = useCart();
+
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  function handleCheckout() {
+    if (loading) return;
+
+    if (!user) {
+      router.push("/login?next=%2Fcheckout");
+      return;
+    }
+
+    router.push("/checkout");
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -75,7 +91,6 @@ export default function CartPage() {
                   {/* Product Image */}
                   <Link
                     href={`/products/${item.slug}`}
-                    
                     className="relative h-32 w-full shrink-0 rounded-lg bg-gray-50 sm:w-32"
                   >
                     <Image
@@ -197,12 +212,9 @@ export default function CartPage() {
 
             <button
               type="button"
-              onClick={() =>
-                alert(
-                  "Checkout functionality will be added later. This is a demo store."
-                )
-              }
-              className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 cursor-pointer"
+              onClick={handleCheckout}
+              disabled={loading}
+              className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
             >
               Proceed to Checkout
             </button>

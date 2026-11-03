@@ -1,38 +1,61 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/types/product";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
   const categoryFromUrl = searchParams.get("category") ?? "";
+  const searchFromUrl = searchParams.get("search") ?? "";
+  const sortFromUrl = searchParams.get("sort") ?? "featured";
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchFromUrl);
   const [category, setCategory] = useState(categoryFromUrl);
-  const [sort, setSort] = useState("featured");
+  const [sort, setSort] = useState(sortFromUrl);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const skipNextUrlSync = useRef(false);
 
   useEffect(() => {
+    skipNextUrlSync.current = true;
+    setSearch(searchFromUrl);
     setCategory(categoryFromUrl);
-  }, [categoryFromUrl]);
+    setSort(
+      ["featured", "price-low", "price-high", "rating"].includes(sortFromUrl)
+        ? sortFromUrl
+        : "featured",
+    );
+  }, [searchFromUrl, categoryFromUrl, sortFromUrl]);
 
   useEffect(() => {
     async function fetchProducts() {
       try {
+
+        console.log("Fetching products...");
+
         const response = await fetch("/api/products");
+
+        console.log("API response status:", response.status);
 
         if (!response.ok) {
           throw new Error("Failed to fetch products.");
         }
 
         const data = await response.json();
+
+        console.log("Products received:", data.products);
+        console.log("Product count:", data.products?.length);
+
         setProducts(data.products);
-      } catch {
+      } catch (error) {
+        console.error("Product fetching error:", error);
         setError("Unable to load products. Please try again.");
       } finally {
         setLoading(false);
@@ -42,19 +65,57 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
+  // Update the URL when the filters change.
+  useEffect(() => {
+    if (skipNextUrlSync.current) {
+      skipNextUrlSync.current = false;
+      return;
+    }
+
+    const params = new URLSearchParams();
+
+    if (search.trim()) {
+      params.set("search", search.trim());
+    }
+
+    if (category) {
+      params.set("category", category);
+    }
+
+    if (sort !== "featured") {
+      params.set("sort", sort);
+    }
+
+    const queryString = params.toString();
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    const currentUrl = `${pathname}${searchParams.size ? `?${searchParams.toString()}` : ""}`;
+
+    if (nextUrl !== currentUrl) {
+      router.replace(nextUrl, { scroll: false });
+    }
+  }, [search, category, sort, pathname, router, searchParams]);
+
   const categories = useMemo(
     () => [...new Set(products.map((product) => product.category))],
-    [products]
+    [products],
   );
 
   const filteredProducts = useMemo(() => {
-    const result = products.filter((product) => {
-      const matchesSearch = `${product.name} ${product.brand} ${product.description}`
-        .toLowerCase()
-        .includes(search.trim().toLowerCase());
+    const normalizedSearch = search.trim().toLowerCase().replace(/\s+/g, " ");
 
-      const matchesCategory =
-        !category || product.category === category;
+    const result = products.filter((product) => {
+      const searchableText = [
+        product.name,
+        product.brand,
+        product.description,
+        product.category,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = searchableText.includes(normalizedSearch);
+      const matchesCategory = !category || product.category === category;
 
       return matchesSearch && matchesCategory;
     });
@@ -74,6 +135,15 @@ export default function ProductsPage() {
     return result;
   }, [products, search, category, sort]);
 
+  const hasActiveFilters =
+    search.trim() !== "" || category !== "" || sort !== "featured";
+
+  function clearFilters() {
+    setSearch("");
+    setCategory("");
+    setSort("featured");
+  }
+
   return (
     <main className="min-h-screen bg-white px-6 py-12 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-[1900px]">
@@ -89,12 +159,14 @@ export default function ProductsPage() {
           <input
             type="search"
             placeholder="Search products..."
+            aria-label="Search products"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
           />
 
           <select
+            aria-label="Filter by category"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-600"
@@ -108,6 +180,7 @@ export default function ProductsPage() {
           </select>
 
           <select
+            aria-label="Sort products"
             value={sort}
             onChange={(event) => setSort(event.target.value)}
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-600"
@@ -120,39 +193,46 @@ export default function ProductsPage() {
         </div>
 
         {!loading && !error && (
-          <p className="mt-6 text-sm text-gray-500">
-            Showing {filteredProducts.length} of {products.length} products
-          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-gray-500">
+              Showing {filteredProducts.length} of {products.length} products
+            </p>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
         )}
 
         {loading && (
           <p className="mt-8 text-gray-600">Loading products...</p>
         )}
 
-        {error && (
-          <p className="mt-8 text-red-600">{error}</p>
-        )}
+        {error && <p className="mt-8 text-red-600">{error}</p>}
 
         {!loading && !error && filteredProducts.length === 0 && (
           <div className="py-16 text-center">
             <h2 className="text-xl font-semibold text-gray-900">
               No products found
             </h2>
-
             <p className="mt-2 text-gray-600">
               Try another search or category.
             </p>
-
-            <button
-              onClick={() => {
-                setSearch("");
-                setCategory("");
-                setSort("featured");
-              }}
-              className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700"
-            >
-              Clear Filters
-            </button>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         )}
 
@@ -187,7 +267,6 @@ export default function ProductsPage() {
                     <p className="text-xl font-bold text-gray-900">
                       ${product.price.toFixed(2)}
                     </p>
-
                     <p className="text-sm text-amber-600">
                       ★ {product.rating}
                     </p>
@@ -198,11 +277,8 @@ export default function ProductsPage() {
                   </p>
 
                   <p
-                    className={`mt-4 text-sm font-medium ${
-                      product.inStock
-                        ? "text-green-700"
-                        : "text-red-600"
-                    }`}
+                    className={`mt-4 text-sm font-medium ${product.inStock ? "text-green-700" : "text-red-600"
+                      }`}
                   >
                     {product.inStock ? "In Stock" : "Out of Stock"}
                   </p>
