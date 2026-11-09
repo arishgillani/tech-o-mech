@@ -42,6 +42,25 @@ const formatDate = (date: string) =>
     day: "numeric",
   });
 
+// Get color based on order status
+function getStatusStyle(status: string) {
+  switch (status.toLowerCase()) {
+    case "placed":
+      return "bg-gray-100 text-black";
+
+    case "processing":
+    case "shipped":
+    case "delivered":
+      return "bg-green-50 text-green-700";
+
+    case "cancelled":
+      return "bg-red-50 text-red-700";
+
+    default:
+      return "bg-gray-100 text-black";
+  }
+}
+
 export default function OrdersPage() {
   const { user, loading } = useAuth();
 
@@ -99,7 +118,7 @@ export default function OrdersPage() {
         .select("id, order_id, product_name, quantity, unit_price")
         .in(
           "order_id",
-          fetchedOrders.map((order) => order.id),
+          fetchedOrders.map((order) => order.id)
         );
 
       if (cancelled) return;
@@ -107,7 +126,7 @@ export default function OrdersPage() {
       if (itemsError) {
         console.error("Failed to load order items:", itemsError);
         setErrorMessage(
-          "Your orders loaded, but their product details couldn't be loaded.",
+          "Your orders loaded, but their product details couldn't be loaded."
         );
       } else {
         setOrderItems((items ?? []) as OrderItem[]);
@@ -210,8 +229,9 @@ export default function OrdersPage() {
 
             {orders.map((order) => {
               const items = orderItems.filter(
-                (item) => item.order_id === order.id,
+                (item) => item.order_id === order.id
               );
+
               const isExpanded = expandedOrder === order.id;
 
               return (
@@ -236,10 +256,14 @@ export default function OrdersPage() {
                         <h2 className="font-semibold text-gray-900">
                           Order #{order.id}
                         </h2>
+
                         <p className="mt-1 text-sm text-gray-500">
                           Placed on {formatDate(order.created_at)}
                         </p>
-                        <span className="mt-2 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium capitalize text-blue-700">
+
+                        <span
+                          className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-medium capitalize ${getStatusStyle(order.status)}`}
+                        >
                           {order.status}
                         </span>
                       </div>
@@ -282,6 +306,7 @@ export default function OrdersPage() {
                                 <p className="font-medium text-gray-900">
                                   {item.product_name}
                                 </p>
+
                                 <p className="mt-1 text-sm text-gray-500">
                                   Quantity: {item.quantity} ×{" "}
                                   {currency(Number(item.unit_price))}
@@ -290,7 +315,7 @@ export default function OrdersPage() {
 
                               <p className="shrink-0 font-medium text-gray-900">
                                 {currency(
-                                  Number(item.unit_price) * item.quantity,
+                                  Number(item.unit_price) * item.quantity
                                 )}
                               </p>
                             </div>

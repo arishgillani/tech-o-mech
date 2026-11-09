@@ -45,6 +45,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const parsedCart: unknown = JSON.parse(savedCart);
 
         if (Array.isArray(parsedCart)) {
+          // This state update hydrates the cart from external storage on mount.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setCartItems(parsedCart);
         }
       }

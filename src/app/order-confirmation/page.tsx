@@ -39,7 +39,7 @@ function OrderConfirmationContent() {
 
           <Link
             href="/products"
-            className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-200"
           >
             Continue Shopping
           </Link>

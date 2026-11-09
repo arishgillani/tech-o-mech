@@ -12,8 +12,8 @@ export default function CheckoutPage() {
   const { cartItems, subtotal, clearCart } = useCart();
   const router = useRouter();
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -22,19 +22,19 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Use the authenticated user's details as the default values.
+  // If the user edits either field, use their entered value instead.
+  const defaultFullName =
+    user?.user_metadata?.full_name ??
+    user?.user_metadata?.name ??
+    "";
+
+  const checkoutFullName = fullName ?? defaultFullName;
+  const checkoutEmail = email ?? user?.email ?? "";
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login?next=%2Fcheckout");
-      return;
-    }
-
-    if (user) {
-      setEmail(user.email ?? "");
-      setFullName(
-        user.user_metadata?.full_name ??
-          user.user_metadata?.name ??
-          "",
-      );
     }
   }, [user, loading, router]);
 
@@ -86,8 +86,8 @@ export default function CheckoutPage() {
             productId: Number(item.id),
             quantity: item.quantity,
           })),
-          fullName,
-          email,
+          fullName: checkoutFullName,
+          email: checkoutEmail,
           address,
           city,
           state,
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
                   name="fullName"
                   autoComplete="name"
                   required
-                  value={fullName}
+                  value={checkoutFullName}
                   onChange={(event) =>
                     setFullName(event.target.value)
                   }
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  value={email}
+                  value={checkoutEmail}
                   onChange={(event) =>
                     setEmail(event.target.value)
                   }
@@ -346,7 +346,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 w-full cursor-pointer rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting
                 ? "Placing Order..."
@@ -355,7 +355,7 @@ export default function CheckoutPage() {
 
             <Link
               href="/cart"
-              className="mt-3 block w-full rounded-lg border border-gray-300 bg-white px-5 py-3 text-center font-semibold text-gray-700 transition hover:bg-gray-100"
+              className="mt-3 block w-full rounded-lg border border-gray-300 bg-white px-5 py-3 text-center font-semibold text-gray-700 transition hover:bg-gray-200"
             >
               Back to Cart
             </Link>

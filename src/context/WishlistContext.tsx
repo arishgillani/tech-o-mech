@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -28,7 +29,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
 
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -36,7 +36,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     async function loadWishlist() {
       if (!user) {
         setWishlistItems([]);
-        setIsLoaded(true);
         return;
       }
 
@@ -66,34 +65,33 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error("Failed to load wishlist:", error.message);
         setWishlistItems([]);
-        setIsLoaded(true);
         return;
       }
 
       const products = (data ?? [])
-  .map((item) => {
-    const product = Array.isArray(item.products)
-      ? item.products[0]
-      : item.products;
+        .map((item) => {
+          const product = Array.isArray(item.products)
+            ? item.products[0]
+            : item.products;
 
-    if (!product) return null;
+          if (!product) return null;
 
-    return {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      category: product.category,
-      price: Number(product.price),
-      image: product.image,
-      description: product.description,
-      brand: product.brand,
-      rating: Number(product.rating),
-      inStock: product.in_stock,
-    };
-  })
-  .filter((product): product is Product => product !== null);
+          return {
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            category: product.category,
+            price: Number(product.price),
+            image: product.image,
+            description: product.description,
+            brand: product.brand,
+            rating: Number(product.rating),
+            inStock: product.in_stock,
+          };
+        })
+        .filter((product): product is Product => product !== null);
+
       setWishlistItems(products);
-      setIsLoaded(true);
     }
 
     loadWishlist();

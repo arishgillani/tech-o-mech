@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -42,7 +43,7 @@ export default function CartPage() {
           </h1>
 
           <p className="mt-3 text-gray-600">
-            Looks like you haven't added anything to your cart yet.
+            Looks like you haven&apos;t added anything to your cart yet.
           </p>
 
           <Link
@@ -73,7 +74,7 @@ export default function CartPage() {
           <button
             type="button"
             onClick={clearCart}
-            className="text-sm font-medium text-red-600 hover:text-red-800 cursor-pointer"
+            className="text-sm font-medium bg-red-500 px-4 py-2 rounded-full text-white hover:bg-red-700 cursor-pointer"
           >
             Clear Cart
           </button>
@@ -221,7 +222,7 @@ export default function CartPage() {
 
             <Link
               href="/products"
-              className="mt-3 block w-full rounded-lg border border-gray-300 bg-white px-5 py-3 text-center font-semibold text-gray-700 transition hover:bg-gray-100"
+              className="mt-3 block w-full rounded-lg border border-gray-300 bg-white px-5 py-3 text-center font-semibold text-gray-700 transition hover:bg-gray-200"
             >
               Continue Shopping
             </Link>

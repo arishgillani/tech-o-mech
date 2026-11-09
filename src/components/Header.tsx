@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   UserRound,
   ChevronDown,
@@ -23,15 +23,12 @@ const categories = [
   "Gaming Mouse",
   "Headsets",
   "Gaming Chairs",
-  "Components",
 ];
 
-export default function Header() {
-  const { cartCount } = useCart();
+// AccountDropdown is now outside Header.
+function AccountDropdown() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -42,9 +39,12 @@ export default function Header() {
     user?.email?.split("@")[0] ||
     "there";
 
-  const currentPage = searchParams.toString()
-    ? `${pathname}?${searchParams.toString()}`
-    : pathname;
+  const pathname = usePathname();
+
+  const currentPage =
+    typeof window !== "undefined"
+      ? `${pathname}${window.location.search}`
+      : pathname;
 
   const returnTo = encodeURIComponent(
     currentPage.startsWith("/login") || currentPage.startsWith("/signup")
@@ -70,119 +70,122 @@ export default function Header() {
     router.refresh();
   }
 
-  function AccountDropdown() {
-    return (
-      <div className="relative">
-        {loading ? (
-          <span className="text-sm text-gray-500">Account...</span>
-        ) : user ? (
-          <>
-            <button
-              type="button"
-              onClick={() => setShowAccountMenu((current) => !current)}
-              className="flex cursor-pointer items-center gap-2 text-black transition hover:text-blue-600"
-              aria-expanded={showAccountMenu}
-              aria-haspopup="true"
-            >
-              <UserRound size={22} />
+  return (
+    <div className="relative">
+      {loading ? (
+        <span className="text-sm text-gray-500">Account...</span>
+      ) : user ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowAccountMenu((current) => !current)}
+            className="flex cursor-pointer items-center gap-2 text-black transition hover:text-blue-600"
+            aria-expanded={showAccountMenu}
+            aria-haspopup="true"
+          >
+            <UserRound size={22} />
 
-              <span className="flex flex-col items-start leading-tight">
-                <span className="font-medium">Account</span>
-                <span className="text-xs">Hi, {fullName}</span>
-              </span>
+            <span className="flex flex-col items-start leading-tight">
+              <span className="font-medium">Account</span>
+              <span className="text-xs">Hi, {fullName}</span>
+            </span>
 
-              <ChevronDown size={14} />
-            </button>
+            <ChevronDown size={14} />
+          </button>
 
-            {showAccountMenu && (
-              <div className="absolute right-0 top-full z-50 mt-3 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
-                <div className="border-b border-gray-100 px-3 pb-3">
-                  <p className="text-sm font-semibold text-gray-900">
-                    Hi, {fullName}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-gray-500">
-                    {user.email}
-                  </p>
-                </div>
-
-                <Link
-                  href="/account"
-                  onClick={() => setShowAccountMenu(false)}
-                  className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100"
-                >
-                  <UserRound size={18} />
-                  My Account
-                </Link>
-
-                <Link
-                  href="/wishlist"
-                  onClick={() => setShowAccountMenu(false)}
-                  className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100 lg:hidden"
-                >
-                  <Heart size={18} />
-                  My Wishlist
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  className="mt-2 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100 disabled:opacity-60"
-                >
-                  <LogOut size={18} />
-                  {loggingOut ? "Signing out..." : "Sign Out"}
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => setShowAccountMenu((current) => !current)}
-              className="flex cursor-pointer items-center gap-2 font-medium text-black transition hover:text-blue-600"
-              aria-expanded={showAccountMenu}
-              aria-haspopup="true"
-            >
-              <UserRound size={22} />
-              <span>Sign In</span>
-              <ChevronDown size={14} />
-            </button>
-
-            {showAccountMenu && (
-              <div className="absolute right-0 top-full z-50 mt-3 w-64 rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
-                <h2 className="text-base font-bold text-gray-900">
-                  Welcome to Tech O Mech
-                </h2>
-
-                <p className="mt-1 text-sm leading-5 text-gray-600">
-                  Sign in to access your account, wishlist and checkout.
+          {showAccountMenu && (
+            <div className="absolute right-0 top-full z-50 mt-3 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-xl">
+              <div className="border-b border-gray-100 px-3 pb-3">
+                <p className="text-sm font-semibold text-gray-900">
+                  Hi, {fullName}
                 </p>
-
-                <div className="mt-5 grid gap-3">
-                  <Link
-                    href={`/login?next=${returnTo}`}
-                    onClick={() => setShowAccountMenu(false)}
-                    className="rounded-lg bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
-                  >
-                    Sign In
-                  </Link>
-
-                  <Link
-                    href={`/signup?next=${returnTo}`}
-                    onClick={() => setShowAccountMenu(false)}
-                    className="rounded-lg border border-blue-600 bg-white px-4 py-3 text-center text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
-                  >
-                    Create Account
-                  </Link>
-                </div>
+                <p className="mt-1 truncate text-xs text-gray-500">
+                  {user.email}
+                </p>
               </div>
-            )}
-          </>
-        )}
-      </div>
-    );
-  }
+
+              <Link
+                href="/account"
+                onClick={() => setShowAccountMenu(false)}
+                className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100"
+              >
+                <UserRound size={18} />
+                My Account
+              </Link>
+
+              <Link
+                href="/wishlist"
+                onClick={() => setShowAccountMenu(false)}
+                className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100 lg:hidden"
+              >
+                <Heart size={18} />
+                My Wishlist
+              </Link>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="mt-2 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-800 transition hover:bg-gray-100 disabled:opacity-60"
+              >
+                <LogOut size={18} />
+                {loggingOut ? "Signing out..." : "Sign Out"}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowAccountMenu((current) => !current)}
+            className="flex cursor-pointer items-center gap-2 font-medium text-black transition hover:text-blue-600"
+            aria-expanded={showAccountMenu}
+            aria-haspopup="true"
+          >
+            <UserRound size={22} />
+            <span>Sign In</span>
+            <ChevronDown size={14} />
+          </button>
+
+          {showAccountMenu && (
+            <div className="absolute right-0 top-full z-50 mt-3 w-64 rounded-xl border border-gray-200 bg-white p-5 shadow-xl">
+              <h2 className="text-base font-bold text-gray-900">
+                Welcome to Tech O Mech
+              </h2>
+
+              <p className="mt-1 text-sm leading-5 text-gray-600">
+                Sign in to access your account, wishlist and checkout.
+              </p>
+
+              <div className="mt-5 grid gap-3">
+                <Link
+                  href={`/login?next=${returnTo}`}
+                  onClick={() => setShowAccountMenu(false)}
+                  className="rounded-lg bg-blue-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Sign In
+                </Link>
+
+                <Link
+                  href={`/signup?next=${returnTo}`}
+                  onClick={() => setShowAccountMenu(false)}
+                  className="rounded-lg border border-blue-600 bg-white px-4 py-3 text-center text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
+                >
+                  Create Account
+                </Link>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function Header() {
+  const { cartCount } = useCart();
+  const pathname = usePathname();
 
   // Hide the storefront header on all admin pages.
   if (pathname.startsWith("/admin")) {
@@ -264,7 +267,7 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Desktop navigation - original layout preserved */}
+      {/* Desktop navigation */}
       <div className="hidden md:block">
         <div className="mx-auto flex max-w-[1800px] items-center gap-6 p-4 sm:px-6 lg:px-8">
           <Link
@@ -274,11 +277,7 @@ export default function Header() {
             Tech<span className="text-blue-600">O</span>Mech
           </Link>
 
-          <form
-            action="/products"
-            method="GET"
-            className="flex-1"
-          >
+          <form action="/products" method="GET" className="flex-1">
             <div className="flex rounded-lg border border-gray-300 bg-gray-50 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
               <input
                 type="search"
@@ -326,7 +325,7 @@ export default function Header() {
           aria-label="Product categories"
           className="border-t border-gray-100"
         >
-          <div className="mx-auto flex max-w-[1200px] gap-20 overflow-x-auto pb-4 text-sm font-medium sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-[1150px] gap-20 overflow-x-auto pb-4 text-sm font-medium sm:px-6 lg:px-8">
             {categories.map((category) => (
               <Link
                 key={category}

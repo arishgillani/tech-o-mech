@@ -18,17 +18,13 @@ const footerSections = [
         title: "Customer Support",
         links: [
             { label: "Contact Us", href: "/contact" },
-            { label: "FAQs", href: "/faq" },
-            { label: "Shipping Information", href: "/shipping" },
-            { label: "Returns & Refunds", href: "/returns" },
+            { label: "FAQs", href: "/faq" }
         ],
     },
     {
         title: "About",
         links: [
-            { label: "About Tech O Mech", href: "/about" },
-            { label: "Privacy Policy", href: "/privacy" },
-            { label: "Terms & Conditions", href: "/terms" },
+            { label: "About Tech O Mech", href: "/about" }
         ],
     },
 ];

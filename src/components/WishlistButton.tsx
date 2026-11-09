@@ -74,7 +74,7 @@ export default function WishlistButton({
             ? "Remove from wishlist"
             : "Add to wishlist"
         }
-        className={`flex h-[42px] w-[52px] items-center justify-center rounded-lg border text-2xl transition cursor-pointer ${
+        className={`flex h-[48px] w-[52px] items-center justify-center rounded-lg border text-2xl transition cursor-pointer ${
           isWishlisted
             ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
             : "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:text-blue-600"

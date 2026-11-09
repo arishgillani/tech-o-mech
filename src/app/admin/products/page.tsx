@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -57,29 +58,45 @@ export default function AdminProductsPage() {
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [deleteError, setDeleteError] = useState("");
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      setError("");
+  const fetchProducts = useCallback(async (): Promise<Product[]> => {
+    const response = await fetch("/api/products");
+    const result = await response.json();
 
-      const response = await fetch("/api/products");
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Failed to load products.");
-      }
-
-      setProducts(result.products);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong."
-      );
-    } finally {
-      setLoading(false);
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Failed to load products.");
     }
+
+    return result.products;
   }, []);
 
   useEffect(() => {
-    fetchProducts();
+    let ignore = false;
+
+    async function loadProducts() {
+      try {
+        const data = await fetchProducts();
+
+        if (!ignore) {
+          setProducts(data);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(
+            err instanceof Error ? err.message : "Something went wrong."
+          );
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      ignore = true;
+    };
   }, [fetchProducts]);
 
   function updateField(
@@ -130,7 +147,10 @@ export default function AdminProductsPage() {
       return;
     }
 
-    if (imageFile && !["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)) {
+    if (
+      imageFile &&
+      !["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)
+    ) {
       setFormError("Please select a JPG, PNG, or WebP image.");
       return;
     }
@@ -200,6 +220,9 @@ export default function AdminProductsPage() {
         throw new Error(result.error || "Failed to save product.");
       }
 
+      // The database operation succeeded, so keep the uploaded image.
+      uploadedImagePath = "";
+
       setShowForm(false);
       setForm(initialForm);
       setImageFile(null);
@@ -211,7 +234,16 @@ export default function AdminProductsPage() {
           : "Product added successfully."
       );
 
-      await fetchProducts();
+      // Refresh the product list without treating a refresh failure
+      // as a failure of the successful save operation.
+      try {
+        setProducts(await fetchProducts());
+        setError("");
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Something went wrong."
+        );
+      }
     } catch (err) {
       // Clean up the newly uploaded image if the database operation fails.
       if (uploadedImagePath) {
@@ -249,7 +281,16 @@ export default function AdminProductsPage() {
         return;
       }
 
-      await fetchProducts();
+      // Refresh the list after the product has been deleted.
+      try {
+        setProducts(await fetchProducts());
+        setError("");
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Something went wrong."
+        );
+      }
+
       setProductToDelete(null);
       setDeleteError("");
       setSuccessMessage("Product deleted successfully.");
@@ -274,7 +315,7 @@ export default function AdminProductsPage() {
         <button
           type="button"
           onClick={openAddForm}
-          className="flex items-center justify-center gap-2 rounded-lg cursor-pointer bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
         >
           <Plus size={18} />
           Add Product
@@ -370,10 +411,11 @@ export default function AdminProductsPage() {
 
                     <td className="px-6 py-4">
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${product.inStock
-                          ? "bg-green-50 text-green-700"
-                          : "bg-red-50 text-red-700"
-                          }`}
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${
+                          product.inStock
+                            ? "bg-green-50 text-green-700"
+                            : "bg-red-50 text-red-700"
+                        }`}
                       >
                         {product.inStock ? "In Stock" : "Out of Stock"}
                       </span>
@@ -385,7 +427,7 @@ export default function AdminProductsPage() {
                           type="button"
                           onClick={() => openEditForm(product)}
                           title="Edit product"
-                          className="rounded-lg p-2 text-blue-600 transition hover:bg-blue-50 cursor-pointer"
+                          className="cursor-pointer rounded-lg p-2 text-blue-600 transition hover:bg-blue-50"
                         >
                           <Pencil size={18} />
                         </button>
@@ -397,7 +439,7 @@ export default function AdminProductsPage() {
                             setProductToDelete(product);
                           }}
                           title="Delete product"
-                          className="rounded-lg p-2 cursor-pointer text-red-600 hover:bg-red-50"
+                          className="cursor-pointer rounded-lg p-2 text-red-600 hover:bg-red-50"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -427,7 +469,7 @@ export default function AdminProductsPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                className="cursor-pointer rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
                 aria-label="Close form"
               >
                 <X size={20} />
@@ -492,7 +534,6 @@ export default function AdminProductsPage() {
                     <option value="Gaming Mouse">Gaming Mouse</option>
                     <option value="Headsets">Headsets</option>
                     <option value="Gaming Chairs">Gaming Chairs</option>
-                    <option value="Components">Components</option>
                   </select>
                 </div>
 
@@ -588,7 +629,7 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                  className="cursor-pointer rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-200"
                 >
                   Cancel
                 </button>
@@ -596,7 +637,7 @@ export default function AdminProductsPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="cursor-pointer rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {saving
                     ? editingProduct
@@ -610,7 +651,6 @@ export default function AdminProductsPage() {
             </form>
           </div>
         </div>
-
       )}
 
       {/* Delete Confirmation Modal */}
@@ -628,7 +668,7 @@ export default function AdminProductsPage() {
             <p className="mb-6 text-sm leading-6 text-gray-600">
               Are you sure you want to delete{" "}
               <span className="font-semibold text-gray-900">
-                "{productToDelete.name}"
+                &quot;{productToDelete.name}&quot;
               </span>
               ?
             </p>
@@ -647,7 +687,7 @@ export default function AdminProductsPage() {
                   setDeleteError("");
                 }}
                 disabled={deletingId !== null}
-                className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm cursor-pointer font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+                className="cursor-pointer rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -656,7 +696,7 @@ export default function AdminProductsPage() {
                 type="button"
                 onClick={handleDeleteProduct}
                 disabled={deletingId !== null}
-                className="rounded-lg bg-red-600 px-5 py-2.5 text-sm cursor-pointer font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="cursor-pointer rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {deletingId === productToDelete.id
                   ? "Deleting..."
@@ -666,8 +706,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
-
