@@ -411,11 +411,10 @@ export default function AdminProductsPage() {
 
                     <td className="px-6 py-4">
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          product.inStock
+                        className={`inline-block whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${product.inStock
                             ? "bg-green-50 text-green-700"
                             : "bg-red-50 text-red-700"
-                        }`}
+                          }`}
                       >
                         {product.inStock ? "In Stock" : "Out of Stock"}
                       </span>

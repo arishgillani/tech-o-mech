@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isValidOrderItem, combineOrderItems } from "@/lib/order-utils";
 
 type OrderRequestItem = {
   productId: number;
@@ -87,34 +88,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const quantities = new Map<number, number>();
-
     for (const item of items) {
-      if (
-        !item ||
-        !Number.isSafeInteger(item.productId) ||
-        item.productId <= 0 ||
-        !Number.isSafeInteger(item.quantity) ||
-        item.quantity <= 0 ||
-        item.quantity > 99
-      ) {
+      if (!item || !isValidOrderItem(item)) {
         return NextResponse.json(
           { error: "One or more cart items are invalid." },
           { status: 400 },
         );
       }
+    }
 
-      const combinedQuantity =
-        (quantities.get(item.productId) ?? 0) + item.quantity;
+    const quantities = combineOrderItems(items);
 
-      if (combinedQuantity > 99) {
-        return NextResponse.json(
-          { error: "Maximum quantity per product is 99." },
-          { status: 400 },
-        );
-      }
-
-      quantities.set(item.productId, combinedQuantity);
+    if (!quantities) {
+      return NextResponse.json(
+        { error: "Maximum quantity per product is 99." },
+        { status: 400 },
+      );
     }
 
     const productIds = [...quantities.keys()];

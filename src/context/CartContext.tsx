@@ -1,13 +1,8 @@
 
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { calculateCartCount, calculateSubtotal, isValidQuantity } from "@/lib/cart-utils";
 
 export type CartItem = {
   id: number;
@@ -89,7 +84,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   function updateQuantity(productId: number, quantity: number) {
-    if (!Number.isInteger(quantity) || quantity < 1) return;
+    if (!isValidQuantity(quantity)) return;
 
     setCartItems((currentItems) =>
       currentItems.map((item) =>
@@ -102,15 +97,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems([]);
   }
 
-  const cartCount = cartItems.reduce(
-    (total, item) => total + item.quantity,
-    0
-  );
-
-  const subtotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const cartCount = calculateCartCount(cartItems);
+  const subtotal = calculateSubtotal(cartItems);
 
   return (
     <CartContext.Provider

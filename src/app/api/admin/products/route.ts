@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isValidProductPrice } from "@/lib/product-utils";
 
 export async function POST(request: Request) {
   try {
@@ -64,11 +65,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      typeof price !== "number" ||
-      !Number.isFinite(price) ||
-      price < 0
-    ) {
+    if (!isValidProductPrice(price)) {
       return NextResponse.json(
         { success: false, error: "Please enter a valid price." },
         { status: 400 }
