@@ -17,11 +17,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://tech-o-mech.vercel.app"),
   title: "Tech O Mech | Gaming PCs & Accessories",
   description:
     "Explore gaming PCs, monitors, keyboards, mice, headsets, and gaming accessories at Tech O Mech.",
+  openGraph: {
+    title: "Tech O Mech | Gaming PCs & Accessories",
+    description:
+      "Explore gaming PCs, monitors, keyboards, mice, headsets, and gaming accessories at Tech O Mech.",
+    url: "https://tech-o-mech.vercel.app",
+    siteName: "Tech O Mech",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Tech O Mech - Gaming PCs and Accessories",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tech O Mech | Gaming PCs & Accessories",
+    description:
+      "Explore gaming PCs, monitors, keyboards, mice, headsets, and gaming accessories at Tech O Mech.",
+    images: ["/opengraph-image.png"],
+  },
 };
+
 
 export default function RootLayout({
   children,
