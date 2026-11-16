@@ -323,9 +323,8 @@ export default function Header() {
 
         <nav
           aria-label="Product categories"
-          className="border-t border-gray-100"
         >
-          <div className="mx-auto flex max-w-[1150px] gap-20 overflow-x-auto pb-4 text-sm font-medium sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-[1150px] gap-20 overflow-x-auto pb-4 text-sm font-medium  sm:px-6 lg:px-8">
             {categories.map((category) => (
               <Link
                 key={category}
